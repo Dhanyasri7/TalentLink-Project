@@ -61,7 +61,7 @@ function Login() {
         <h2>LOGIN</h2>
         <form onSubmit={handleSubmit}>
           <div className={styles["form-group"]}>
-            <label>Username</label>
+            <label className={styles.inputLabel}>Username</label>
             <input
               name="username"
               value={form.username}
@@ -72,7 +72,7 @@ function Login() {
           </div>
 
           <div className={styles["form-group"]}>
-            <label>Password</label>
+            <label className={styles.inputLabel}>Password</label>
             <input
               type="password"
               name="password"
@@ -84,7 +84,7 @@ function Login() {
           </div>
 
           <div className={styles["form-group"]}>
-            <label>Login as:</label>
+            <label className={styles.inputLabel}>Login as:</label>
             <select value={role} onChange={(e) => setRole(e.target.value)}>
               <option value="client">Client</option>
               <option value="freelancer">Freelancer</option>

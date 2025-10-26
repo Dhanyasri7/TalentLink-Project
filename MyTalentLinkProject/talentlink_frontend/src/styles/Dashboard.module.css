@@ -1,4 +1,29 @@
 /* ==============================
+   Light & Dark Mode Variables
+   ============================== */
+:root {
+  --dashboard-bg: url("https://img.freepik.com/free-vector/futuristic-background-design_23-2148503793.jpg?semt=ais_hybrid&w=740&q=80");
+  --text: #222;
+  --card-bg: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+  --profile-bg: linear-gradient(135deg, #ffecd2, #fcb69f);
+  --formcard-bg: linear-gradient(135deg, #fddb92, #d1fdff);
+  --projectcard-bg: linear-gradient(135deg, #ffe29f, #ff7e5f);
+  --proposal-bg: linear-gradient(135deg, #d4fc79, #96e6a1);
+  --card-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] {
+  --dashboard-bg: url("https://img.freepik.com/free-vector/dark-futuristic-background_23-2148512602.jpg?size=626&ext=jpg"); /* dark background */
+  --text: #e2e8f0;
+  --card-bg: linear-gradient(135deg, #3a3d55, #1f2233);
+  --profile-bg: linear-gradient(135deg, #4b6cb7, #182848);
+  --formcard-bg: linear-gradient(135deg, #2c3e50, #34495e);
+  --projectcard-bg: linear-gradient(135deg, #6a3093, #a044ff);
+  --proposal-bg: linear-gradient(135deg, #11998e, #38ef7d);
+  --card-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+}
+
+/* ==============================
    Dashboard Container & Layout
    ============================== */
 .dashboardContainer {
@@ -8,10 +33,10 @@
   justify-content: center;
   min-height: 100vh;
   font-family: 'Poppins', sans-serif;
-  background: url("https://img.freepik.com/free-vector/futuristic-background-design_23-2148503793.jpg?semt=ais_hybrid&w=740&q=80")
-    center/cover no-repeat fixed;
+  background: var(--dashboard-bg) center/cover no-repeat fixed;
   padding: 2rem;
-  color: #222;
+  color: var(--text);
+  transition: color 0.3s ease, background 0.3s ease;
 }
 
 /* ==============================
@@ -22,7 +47,7 @@
   text-align: center;
 }
 
-.logo , .pageTitle{
+.logo, .pageTitle {
   font-size: 2.2rem;
   font-weight: 700;
   text-align: center;
@@ -81,16 +106,17 @@
    ============================== */
 .profileCard {
   width: 260px;
-  background: linear-gradient(135deg, #ffecd2, #fcb69f);
+  background: var(--profile-bg);
   border-radius: 15px;
   padding: 1.5rem;
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--card-shadow);
   display: flex;
   flex-direction: column;
   gap: 1rem;
   align-items: center;
   text-align: center;
-  margin-top: 8.1rem;     
+  margin-top: 8.1rem;
+  transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
 }
 
 .profileCard img {
@@ -105,6 +131,7 @@
 .profileInfo p {
   margin: 0.4rem 0;
   font-weight: 500;
+  color: var(--text);
 }
 
 .profileButtons {
@@ -125,7 +152,7 @@
   outline: none;
   background: #ffffffcc;
   transition: all 0.3s ease;
-  width: 100%;
+  width: 90%;
 }
 
 .form input:focus {
@@ -134,18 +161,19 @@
 }
 
 /* ==============================
-   Cards
+   Cards & Projects
    ============================== */
 .card {
   border-radius: 15px;
   padding: 1.5rem;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+
+  box-shadow: var(--card-shadow);
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
-  color: #333;
-  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  background: var(--card-bg);
+  color: var(--text);
+  transition: transform 0.4s ease, box-shadow 0.4s ease, background 0.3s ease, color 0.3s ease;
 }
 
 .card:hover {
@@ -154,12 +182,9 @@
 }
 
 .formCard {
-  background: linear-gradient(135deg, #fddb92, #d1fdff);
+  background: var(--formcard-bg);
 }
 
-/* ==============================
-   Project Section
-   ============================== */
 .projectSection {
   display: flex;
   flex-direction: column;
@@ -169,10 +194,10 @@
 .projectCard {
   border-radius: 15px;
   padding: 1.2rem;
-  color: #333;
-  background: linear-gradient(135deg, #ffe29f, #ff7e5f);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  color: var(--text);
+  background: var(--projectcard-bg);
+  box-shadow: var(--card-shadow);
+  transition: transform 0.4s ease, box-shadow 0.4s ease, background 0.3s ease, color 0.3s ease;
 }
 
 .projectCard:hover {
@@ -196,14 +221,15 @@
 }
 
 .proposalItem {
-  background: linear-gradient(135deg, #d4fc79, #96e6a1);
+  background: var(--proposal-bg);
   border-radius: 12px;
   padding: 0.8rem 1rem;
   margin-top: 0.8rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease, color 0.3s ease;
+  color: var(--text);
 }
 
 .proposalItem:hover {
@@ -249,17 +275,6 @@ button:hover {
 }
 
 /* ==============================
-   Titles & Misc
-   ============================== */
-
-
-.loading {
-  text-align: center;
-  font-size: 1.2rem;
-  color: #333;
-}
-
-/* ==============================
    Responsive Design
    ============================== */
 @media (max-width: 992px) {
@@ -282,8 +297,8 @@ h2 {
   letter-spacing: 1px;
   text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
   margin-bottom: 1rem;
-  padding: 0.4rem 1rem;           /* adds padding for the curved background */
-  background: linear-gradient(90deg, #42a5f5, #1e88e5); /* blue gradient */
-  border-radius: 12px;           /* makes the background slightly curved */
-  display: inline-block;          /* shrink background to text width */
+  padding: 0.4rem 1rem;
+  background: linear-gradient(90deg, #42a5f5, #1e88e5);
+  border-radius: 12px;
+  display: inline-block;
 }

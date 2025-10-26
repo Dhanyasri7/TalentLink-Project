@@ -12,21 +12,34 @@ import Messages from "./pages/Messages";
 import FreelancerProfile from "./pages/FreelancerProfile";
 import ClientProfile from "./pages/ClientProfile";
 
+// 🆕 Import the Theme Context and Toggle
+import { ThemeProvider } from "./theme/ThemeContext";
+import ThemeToggle from "./theme/ThemeToggle";
+import "./index.css";
+
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Welcome />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/freelancerdashboard" element={<FreelancerDashboard />} />
-      <Route path="/find-freelancers" element={<FindFreelancers />} />
-      <Route path="/find-projects" element={<FindProjects />} />
-      <Route path="/contracts" element={<Contracts />} />   
-      <Route path="/messages" element={<Messages />} />  
-      <Route path="/freelancer/profile" element={<FreelancerProfile />} />
-      <Route path="/client/profile" element={<ClientProfile />} />
-    </Routes>
+    <ThemeProvider>
+      {/* Optional global toggle at top-right corner */}
+      <div style={{ position: "fixed", top: "12px", right: "16px", zIndex: 999 }}>
+        <ThemeToggle />
+      </div>
+
+      {/* App Routes */}
+      <Routes>
+        <Route path="/" element={<Welcome />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/freelancerdashboard" element={<FreelancerDashboard />} />
+        <Route path="/find-freelancers" element={<FindFreelancers />} />
+        <Route path="/find-projects" element={<FindProjects />} />
+        <Route path="/contracts" element={<Contracts />} />
+        <Route path="/messages" element={<Messages />} />
+        <Route path="/freelancer/profile" element={<FreelancerProfile />} />
+        <Route path="/client/profile" element={<ClientProfile />} />
+      </Routes>
+    </ThemeProvider>
   );
 }
 

@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "../styles/NavigationBar.module.css";
 
+// 🆕 Import Theme Toggle
+import ThemeToggle from "../theme/ThemeToggle";
+
 function NavigationBar() {
   const navigate = useNavigate();
 
@@ -22,8 +25,10 @@ function NavigationBar() {
 
   return (
     <nav className={styles.navbar}>
-      <h2>{isFreelancer ? "Freelancer" : "Client"} Menu</h2>
+      {/* Left side: Title */}
+      <h2 className={styles.navTitle}>{isFreelancer ? "Freelancer" : "Client"} Menu</h2>
 
+      {/* Center: Links */}
       <div className={styles.navLinks}>
         {/* Dashboard */}
         <Link
@@ -73,13 +78,19 @@ function NavigationBar() {
         </Link>
       </div>
 
-      {/* Logout */}
-      <button
-        onClick={handleLogout}
-        className={`${styles.navButton} ${styles.logoutBtn}`}
-      >
-        Logout
-      </button>
+      {/* Right side: Theme toggle + Logout */}
+      <div className={styles.navRight}>
+        {/* Theme Toggle */}
+        <ThemeToggle />
+
+        {/* Logout button */}
+        <button
+          onClick={handleLogout}
+          className={`${styles.navButton} ${styles.logoutBtn}`}
+        >
+          Logout
+        </button>
+      </div>
     </nav>
   );
 }

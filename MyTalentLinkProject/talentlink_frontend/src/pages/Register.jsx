@@ -15,17 +15,13 @@ function Register() {
   });
   const [error, setError] = useState("");
 
-  // Handle input changes
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     setError("");
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Keep only password match check
     if (form.password !== form.password2) {
       setError("Passwords do not match!");
       return;
@@ -53,13 +49,11 @@ function Register() {
         alert("✅ Registration successful! Please login.");
         navigate("/login");
       } else {
-        console.error("Backend error:", data);
         if (data.username) setError(`Username: ${data.username}`);
         else if (data.email) setError(`Email: ${data.email}`);
         else setError(data.detail || JSON.stringify(data));
       }
     } catch (err) {
-      console.error("Registration error:", err);
       setError("Something went wrong. Please try again later.");
     }
   };
@@ -71,7 +65,7 @@ function Register() {
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles["form-group"]}>
-            <label>Username</label>
+            <label className={styles.inputLabel}>Username</label>
             <input
               name="username"
               value={form.username}
@@ -82,7 +76,7 @@ function Register() {
           </div>
 
           <div className={styles["form-group"]}>
-            <label>Email</label>
+            <label className={styles.inputLabel}>Email</label>
             <input
               type="email"
               name="email"
@@ -94,7 +88,7 @@ function Register() {
           </div>
 
           <div className={styles["form-group"]}>
-            <label>Password</label>
+            <label className={styles.inputLabel}>Password</label>
             <input
               type="password"
               name="password"
@@ -106,7 +100,7 @@ function Register() {
           </div>
 
           <div className={styles["form-group"]}>
-            <label>Confirm Password</label>
+            <label className={styles.inputLabel}>Confirm Password</label>
             <input
               type="password"
               name="password2"
@@ -118,7 +112,7 @@ function Register() {
           </div>
 
           <div className={styles["form-group"]}>
-            <label>Role</label>
+            <label className={styles.inputLabel}>Role</label>
             <select name="role" value={form.role} onChange={handleChange}>
               <option value="freelancer">Freelancer</option>
               <option value="client">Client</option>
