@@ -28,6 +28,7 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
+
 # ---------- Profile Models ----------
 class ClientProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -38,6 +39,7 @@ class ClientProfile(models.Model):
     def __str__(self):
         return self.company_name
 
+
 class FreelancerProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     portfolio = models.TextField(blank=True)
@@ -47,6 +49,7 @@ class FreelancerProfile(models.Model):
 
     def __str__(self):
         return self.user.username
+
 
 # ---------- Project Model ----------
 class Project(models.Model):
@@ -62,6 +65,7 @@ class Project(models.Model):
     def __str__(self):
         return self.title
 
+
 # ---------- Proposal Model ----------
 class Proposal(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="proposals")
@@ -74,6 +78,7 @@ class Proposal(models.Model):
     def __str__(self):
         return f"Proposal by {self.freelancer.username} for {self.project.title}"
 
+
 # ---------- Contract Model ----------
 class Contract(models.Model):
     proposal = models.OneToOneField(Proposal, on_delete=models.CASCADE, related_name='contract')
@@ -82,7 +87,12 @@ class Contract(models.Model):
     payment_amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(
         max_length=20,
-        choices=[('Pending','Pending'), ('Active','Active'), ('Completed','Completed'), ('Cancelled','Cancelled')],
+        choices=[
+            ('Pending', 'Pending'),
+            ('Active', 'Active'),
+            ('Completed', 'Completed'),
+            ('Cancelled', 'Cancelled')
+        ],
         default='Pending'
     )
     created_at = models.DateTimeField(auto_now_add=True)
@@ -90,15 +100,41 @@ class Contract(models.Model):
     def __str__(self):
         return f"Contract: {self.proposal.project.title} ({self.status})"
 
+
 # ---------- Message Model ----------
 class Message(models.Model):
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='messages')
-    sender = models.ForeignKey(User, on_delete=models.CASCADE)
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sent_messages")
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name="received_messages")
     text = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["timestamp"]
 
     def __str__(self):
-        return f"Message from {self.sender.username} at {self.timestamp}"
+        return f"Message from {self.sender.username} to {self.receiver.username} at {self.timestamp}"
+
+
+# ---------- Notification Model ----------
+class Notification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")
+    message = models.CharField(max_length=255)
+    link = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Optional link to related page (e.g. /contract/3)"
+    )
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Notification for {self.user.username}: {self.message[:40]}"
+
 
 # ---------- Signals ----------
 @receiver(post_save, sender=Proposal)
@@ -113,4 +149,17 @@ def create_contract_on_accept(sender, instance, **kwargs):
             freelancer=instance.freelancer,
             payment_amount=instance.bid_amount,
             status='Active'
+        )
+
+
+@receiver(post_save, sender=Message)
+def create_notification_on_message(sender, instance, created, **kwargs):
+    """
+    Automatically create a notification when a new message is sent.
+    """
+    if created:
+        Notification.objects.create(
+            user=instance.receiver,
+            message=f"New message from {instance.sender.username}",
+            link=f"/contracts/{instance.contract.id}/chat"
         )

@@ -21,8 +21,7 @@
 nav {
   width: 220px;
   height: 90vh;
-  background: linear-gradient(180deg, #ff6a00, #ee0979);
-  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.3);
+  
   border-radius: 20px;
   padding: 2rem 1.2rem;
   position: sticky;

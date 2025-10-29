@@ -12,6 +12,7 @@
     center/cover no-repeat fixed;
   padding: 2rem;
   color: #222;
+
 }
 
 /* ==============================
@@ -45,7 +46,7 @@
    ============================== */
 .mainContent {
   display: flex;
-  width: 100%;
+  width: 100;
   max-width: 1300px;
   gap: 2rem;
   flex-wrap: wrap;
@@ -114,6 +115,10 @@ input {
   width: 100%;
   margin-top: 0.3rem;
   
+}
+
+.form {
+  width: 541px;
 }
 
 input:focus {

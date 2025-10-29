@@ -1,6 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
-from .models import ClientProfile, FreelancerProfile, Project, Proposal, User, Contract, Message
+from .models import (
+    ClientProfile, FreelancerProfile, Project, Proposal,
+    User, Contract, Message, Notification
+)
 
 # ---------- User Serializers ----------
 class RegisterSerializer(serializers.ModelSerializer):
@@ -28,18 +31,23 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
+
 # ---------- Profile Serializers ----------
 class ClientProfileSerializer(serializers.ModelSerializer):
     user = serializers.CharField(source='user.username', read_only=True)
+
     class Meta:
         model = ClientProfile
         fields = ['id', 'user', 'company_name', 'bio', 'contact_email']
 
+
 class FreelancerProfileSerializer(serializers.ModelSerializer):
     user = serializers.CharField(source='user.username', read_only=True)
+
     class Meta:
         model = FreelancerProfile
         fields = ['id', 'user', 'portfolio', 'skills', 'hourly_rate', 'availability']
+
 
 # ---------- Project Serializer ----------
 class ProjectSerializer(serializers.ModelSerializer):
@@ -48,12 +56,16 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ['id', 'client', 'title', 'description', 'category', 'budget', 'duration', 'created_at', 'updated_at', 'proposals']
+        fields = [
+            'id', 'client', 'title', 'description', 'category', 'budget',
+            'duration', 'created_at', 'updated_at', 'proposals'
+        ]
 
     def get_proposals(self, obj):
         from .serializers import ProposalSerializer
         proposals = obj.proposals.all()
         return ProposalSerializer(proposals, many=True).data
+
 
 # ---------- Proposal Serializer ----------
 class ProposalSerializer(serializers.ModelSerializer):
@@ -71,15 +83,39 @@ class ContractSerializer(serializers.ModelSerializer):
     project_title = serializers.CharField(source='proposal.project.title', read_only=True)
     freelancer = serializers.CharField(source='freelancer.username', read_only=True)
     client = serializers.CharField(source='client.username', read_only=True)
+    freelancer_id = serializers.IntegerField(source='freelancer.id', read_only=True)
+    client_id = serializers.IntegerField(source='client.id', read_only=True)
 
     class Meta:
         model = Contract
-        fields = ['id', 'proposal', 'project_title', 'freelancer', 'client', 'payment_amount', 'status', 'created_at']
+        fields = [
+            'id', 'proposal', 'project_title', 
+            'freelancer', 'client', 'freelancer_id', 'client_id',
+            'payment_amount', 'status', 'created_at'
+        ]
+
 
 # ---------- Message Serializer ----------
 class MessageSerializer(serializers.ModelSerializer):
-    sender = serializers.CharField(source='sender.username', read_only=True)
+    sender_username = serializers.CharField(source='sender.username', read_only=True)
+    receiver_username = serializers.CharField(source='receiver.username', read_only=True)
+    receiver = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True)
+
     class Meta:
         model = Message
-        fields = ['id', 'contract', 'sender', 'text', 'timestamp']
-        read_only_fields = ['id', 'sender', 'timestamp']
+        fields = [
+            'id', 'contract', 'sender', 'receiver', 'sender_username',
+            'receiver_username', 'text', 'timestamp', 'is_read'
+        ]
+        read_only_fields = ['id', 'sender', 'timestamp', 'is_read']
+
+
+
+# ---------- Notification Serializer ----------
+class NotificationSerializer(serializers.ModelSerializer):
+    user = serializers.CharField(source='user.username', read_only=True)
+
+    class Meta:
+        model = Notification
+        fields = ['id', 'user', 'message', 'link', 'is_read', 'created_at']
+        read_only_fields = ['id', 'user', 'created_at']

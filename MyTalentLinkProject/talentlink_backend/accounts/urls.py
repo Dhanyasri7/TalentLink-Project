@@ -1,26 +1,40 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import (
-    test_view, RegisterView, ClientProfileView, FreelancerProfileView,
-    ProjectViewSet, ProposalViewSet, ContractViewSet, MessageViewSet,
+    test_view, 
+    RegisterView, 
+    ClientProfileView, 
+    FreelancerProfileView,
+    ProjectViewSet, 
+    ProposalViewSet, 
+    ContractViewSet, 
+    MessageViewSet,
     FreelancerListView
 )
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+# ---------- Router Setup ----------
 router = DefaultRouter()
 router.register(r'projects', ProjectViewSet, basename='projects')
 router.register(r'proposals', ProposalViewSet, basename='proposals')
 router.register(r'contracts', ContractViewSet, basename='contracts')
 router.register(r'messages', MessageViewSet, basename='messages')
 
+# ---------- URL Patterns ----------
 urlpatterns = [
-    path('test/', test_view),
+    # Health check / test route
+    path('test/', test_view, name='test'),
+
+    # Authentication routes
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+    # Profile routes
     path('client-profile/', ClientProfileView.as_view(), name='client-profile'),
     path('freelancer-profile/', FreelancerProfileView.as_view(), name='freelancer-profile'),
-    path('profiles/', FreelancerListView.as_view(), name='freelancer-list'),  # Fix for FindFreelancers
-    path('api/', include(router.urls)),
-    path("", include(router.urls)),
+    path('profiles/', FreelancerListView.as_view(), name='freelancer-list'),
+
+    # Include ViewSets (Projects, Proposals, Contracts, Messages)
+    path('', include(router.urls)),
 ]

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styles from "../styles/FindProjects.module.css";
 import NavigationBar from "./NavigationBar";
-import API from "../api.js";
+import API from "../api"; // ✅ Token handled automatically
 
 function FindProjects() {
   const [projects, setProjects] = useState([]);
@@ -11,47 +11,57 @@ function FindProjects() {
     budget: "",
     duration: "",
   });
+  const [loading, setLoading] = useState(false);
 
-  const accessToken = localStorage.getItem("access_token");
-
+  // ✅ Fetch projects with optional filters
   const fetchProjects = async (appliedFilters = filters) => {
     try {
-      let query = [];
-      if (appliedFilters.search) query.push(`search=${appliedFilters.search}`);
-      if (appliedFilters.category)
-        query.push(`category__icontains=${appliedFilters.category}`);
-      if (appliedFilters.budget) query.push(`budget__lte=${appliedFilters.budget}`);
-      if (appliedFilters.duration)
-        query.push(`duration__lte=${appliedFilters.duration}`);
+      setLoading(true);
 
-      const queryString = query.length > 0 ? `?${query.join("&")}` : "";
+      const params = new URLSearchParams();
 
-      const res = await fetch(`http://127.0.0.1:8000/api/projects/${queryString}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
+      if (appliedFilters.search) params.append("search", appliedFilters.search);
+      if (appliedFilters.category) params.append("category", appliedFilters.category);
+      if (appliedFilters.budget) params.append("budget", appliedFilters.budget);
+      if (appliedFilters.duration) params.append("duration", appliedFilters.duration);
 
-      if (res.ok) {
-        const data = await res.json();
-        setProjects(data);
-      } else {
-        console.error("Failed to fetch projects");
-        setProjects([]);
-      }
+      const queryString = params.toString() ? `?${params.toString()}` : "";
+
+      console.log("🔍 Fetching:", `projects/${queryString}`);
+      const res = await API.get(`projects/${queryString}`);
+      setProjects(res.data);
     } catch (err) {
-      console.error(err);
-      setProjects([]);
+      console.error("❌ Error fetching projects:", err.response || err);
+      if (err.response?.status === 401) {
+        alert("⚠ Session expired. Please log in again.");
+      } else {
+        alert("⚠ Unable to fetch projects.");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
+    // ✅ Fetch all projects initially
     fetchProjects();
   }, []);
 
-  const handleChange = (e) => setFilters({ ...filters, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    setFilters({ ...filters, [e.target.name]: e.target.value });
+  };
 
   const handleFilter = (e) => {
     e.preventDefault();
-    fetchProjects();
+
+    // ✅ Validation: Check if all fields are filled
+    const { search, category, budget, duration } = filters;
+    if (!search || !category || !budget || !duration) {
+      alert("⚠ Please fill in all fields before applying filters.");
+      return; // stop the function
+    }
+
+    fetchProjects(filters); // ✅ Trigger filtered fetch
   };
 
   return (
@@ -80,32 +90,36 @@ function FindProjects() {
               <input
                 type="text"
                 name="category"
-                placeholder="Filter by skill/category"
+                placeholder="Filter by category"
                 value={filters.category}
                 onChange={handleChange}
               />
               <input
                 type="number"
                 name="budget"
-                placeholder="Max Budget"
+                placeholder="Exact Budget"
                 value={filters.budget}
                 onChange={handleChange}
               />
               <input
                 type="number"
                 name="duration"
-                placeholder="Max Duration (days)"
+                placeholder="Exact Duration (days)"
                 value={filters.duration}
                 onChange={handleChange}
               />
-              <button type="submit">Apply Filters</button>
+              <button type="submit" disabled={loading}>
+                {loading ? "Filtering..." : "Apply Filters"}
+              </button>
             </form>
           </div>
 
-          {/* Projects List */}
+          {/* Project Results */}
           <div className={styles.card}>
             <h2>Project Results</h2>
-            {projects.length === 0 ? (
+            {loading ? (
+              <p>Loading projects...</p>
+            ) : projects.length === 0 ? (
               <p>No projects found.</p>
             ) : (
               <div className={styles.projectGrid}>
@@ -115,7 +129,7 @@ function FindProjects() {
                     <p>{project.description}</p>
                     <p>
                       <strong>Category:</strong> {project.category} |{" "}
-                      <strong>Budget:</strong> ${project.budget} |{" "}
+                      <strong>Budget:</strong> ₹{project.budget} |{" "}
                       <strong>Duration:</strong> {project.duration} days
                     </p>
                   </div>

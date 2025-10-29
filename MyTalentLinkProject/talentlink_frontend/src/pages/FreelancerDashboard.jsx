@@ -6,7 +6,7 @@ import API from "../api.js";
 function FreelancerDashboard() {
   const [profile, setProfile] = useState(null);
   const [projects, setProjects] = useState([]);
-  const [proposalForms, setProposalForms] = useState({}); // Store proposal input per project
+  const [proposalForms, setProposalForms] = useState({});
   const [loading, setLoading] = useState(true);
 
   // Fetch freelancer profile
@@ -23,7 +23,7 @@ function FreelancerDashboard() {
   // Fetch projects
   const fetchProjects = async () => {
     try {
-      const res = await API.get("api/projects/");
+      const res = await API.get("projects/");
       setProjects(res.data);
     } catch (err) {
       console.error("Projects fetch error:", err);
@@ -49,7 +49,7 @@ function FreelancerDashboard() {
     });
   };
 
-  // Submit proposal
+  // ✅ Fixed: Submit proposal
   const submitProposal = async (projectId) => {
     const form = proposalForms[projectId] || {};
     if (!form.proposal_text || !form.bid_amount) {
@@ -58,14 +58,18 @@ function FreelancerDashboard() {
     }
 
     try {
-      await API.post("api/proposals/", {
+      // ✅ Correct endpoint — removed duplicate "api/"
+      await API.post("proposals/", {
         project: projectId,
         proposal_text: form.proposal_text,
         bid_amount: form.bid_amount,
       });
       alert("✅ Proposal submitted successfully!");
-      setProposalForms({ ...proposalForms, [projectId]: { proposal_text: "", bid_amount: "" } });
-      fetchProjects(); // Refresh projects to show submitted proposal
+      setProposalForms({
+        ...proposalForms,
+        [projectId]: { proposal_text: "", bid_amount: "" },
+      });
+      fetchProjects(); // Refresh projects
     } catch (err) {
       console.error("Proposal submission error:", err.response?.data || err);
       alert("❌ Failed to submit proposal. Check console for details.");
@@ -100,7 +104,8 @@ function FreelancerDashboard() {
                 <div key={project.id} className={styles.projectCard}>
                   <strong>{project.title}</strong> - {project.description}
                   <p>
-                    Category: {project.category} | Budget: ${project.budget} | Duration: {project.duration} days
+                    Category: {project.category} | Budget: ${project.budget} | Duration:{" "}
+                    {project.duration} days
                   </p>
 
                   {/* Proposal Form */}
@@ -108,6 +113,7 @@ function FreelancerDashboard() {
                     <h4>Submit Proposal</h4>
                     <label>Cover Letter</label>
                     <input
+                      className={styles.form}
                       name="proposal_text"
                       placeholder="Cover Letter"
                       value={proposalForms[project.id]?.proposal_text || ""}
@@ -116,6 +122,7 @@ function FreelancerDashboard() {
                     />
                     <label>Bid Amount</label>
                     <input
+                      className={styles.form}
                       name="bid_amount"
                       type="number"
                       placeholder="Bid Amount"
@@ -132,15 +139,18 @@ function FreelancerDashboard() {
                   </div>
 
                   {/* Freelancer's Proposals */}
-                  {project.proposals.length > 0 && (
+                  {project.proposals && project.proposals.length > 0 && (
                     <>
                       <h4>Proposals Submitted:</h4>
                       <ul className={styles.proposalsList}>
                         {project.proposals
-                          .filter((p) => p.freelancer.username === profile.user.username)
+                          .filter(
+                            (p) => p.freelancer.username === profile.user.username
+                          )
                           .map((p) => (
                             <li key={p.id} className={styles.proposalItem}>
-                              {p.proposal_text} | Bid: ${p.bid_amount} | Status: {p.status}
+                              {p.proposal_text} | Bid: ${p.bid_amount} | Status:{" "}
+                              {p.status}
                             </li>
                           ))}
                       </ul>
@@ -155,10 +165,20 @@ function FreelancerDashboard() {
         {/* Profile Card */}
         <div className={styles.profileCard}>
           <h2>Your Profile</h2>
-          <p><strong>Portfolio:</strong> {profile.portfolio || "No portfolio yet."}</p>
-          <p><strong>Skills:</strong> {profile.skills || "No skills added."}</p>
-          <p><strong>Hourly Rate:</strong> {profile.hourly_rate ? `$${profile.hourly_rate}/hr` : "Not set"}</p>
-          <p><strong>Availability:</strong> {profile.availability ? "Available" : "Not Available"}</p>
+          <p>
+            <strong>Portfolio:</strong> {profile.portfolio || "No portfolio yet."}
+          </p>
+          <p>
+            <strong>Skills:</strong> {profile.skills || "No skills added."}
+          </p>
+          <p>
+            <strong>Hourly Rate:</strong>{" "}
+            {profile.hourly_rate ? `$${profile.hourly_rate}/hr` : "Not set"}
+          </p>
+          <p>
+            <strong>Availability:</strong>{" "}
+            {profile.availability ? "Available" : "Not Available"}
+          </p>
         </div>
       </div>
     </div>

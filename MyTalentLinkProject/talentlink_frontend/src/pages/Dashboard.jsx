@@ -38,7 +38,7 @@ function Dashboard() {
   // Fetch client's projects
   const fetchProjects = async () => {
     try {
-      const res = await API.get("api/projects/"); // fixed URL
+      const res = await API.get("projects/"); // ✅ fixed URL
       setProjects(res.data);
     } catch (err) {
       console.error(err);
@@ -58,7 +58,7 @@ function Dashboard() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await API.post("api/projects/", form); // fixed URL
+      await API.post("projects/", form); // ✅ fixed URL
       alert("✅ Project created successfully!");
       setForm({
         title: "",
@@ -78,7 +78,7 @@ function Dashboard() {
   const deleteProject = async (projectId) => {
     if (!window.confirm("Are you sure you want to delete this project?")) return;
     try {
-      await API.delete(`api/projects/${projectId}/`); // fixed URL
+      await API.delete(`projects/${projectId}/`); // ✅ fixed URL
       alert("✅ Project deleted successfully!");
       fetchProjects();
     } catch (err) {
@@ -91,7 +91,7 @@ function Dashboard() {
   const deleteProposal = async (proposalId) => {
     if (!window.confirm("Are you sure you want to delete this proposal?")) return;
     try {
-      await API.delete(`api/proposals/${proposalId}/`); // fixed URL
+      await API.delete(`proposals/${proposalId}/`); // ✅ fixed URL
       alert("✅ Proposal deleted successfully!");
       fetchProjects();
     } catch (err) {
@@ -104,7 +104,7 @@ function Dashboard() {
   const acceptProposal = async (proposalId) => {
     if (!window.confirm("Accept this proposal and create contract?")) return;
     try {
-      const res = await API.post(`api/proposals/${proposalId}/accept/`);
+      const res = await API.post(`proposals/${proposalId}/accept/`); // ✅ fixed URL
       if (res.status === 200) {
         alert("✅ Proposal accepted and contract created!");
         fetchProjects();
