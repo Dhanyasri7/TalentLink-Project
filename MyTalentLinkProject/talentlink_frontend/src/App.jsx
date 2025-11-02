@@ -1,5 +1,7 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
+
+// Pages
 import Welcome from "./pages/Welcome";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -11,21 +13,30 @@ import Contracts from "./pages/Contracts";
 import Messages from "./pages/Messages";
 import FreelancerProfile from "./pages/FreelancerProfile";
 import ClientProfile from "./pages/ClientProfile";
+import Notifications from "./pages/Notifications"; // 🆕 Added
 
-// 🆕 Import the Theme Context and Toggle
+// Theme Context + Global Toggle
 import { ThemeProvider } from "./theme/ThemeContext";
 import ThemeToggle from "./theme/ThemeToggle";
+
 import "./index.css";
 
 function App() {
   return (
     <ThemeProvider>
-      {/* Optional global toggle at top-right corner */}
-      <div style={{ position: "fixed", top: "12px", right: "16px", zIndex: 999 }}>
+      {/* 🌙 Global Theme Toggle */}
+      <div
+        style={{
+          position: "fixed",
+          top: "12px",
+          right: "16px",
+          zIndex: 999,
+        }}
+      >
         <ThemeToggle />
       </div>
 
-      {/* App Routes */}
+      {/* 🧭 App Routes */}
       <Routes>
         <Route path="/" element={<Welcome />} />
         <Route path="/login" element={<Login />} />
@@ -36,6 +47,7 @@ function App() {
         <Route path="/find-projects" element={<FindProjects />} />
         <Route path="/contracts" element={<Contracts />} />
         <Route path="/messages" element={<Messages />} />
+        <Route path="/notifications" element={<Notifications />} /> {/* 🆕 Added Route */}
         <Route path="/freelancer/profile" element={<FreelancerProfile />} />
         <Route path="/client/profile" element={<ClientProfile />} />
       </Routes>

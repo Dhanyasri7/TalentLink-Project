@@ -2,15 +2,16 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import (
-    test_view, 
-    RegisterView, 
-    ClientProfileView, 
+    test_view,
+    RegisterView,
+    ClientProfileView,
     FreelancerProfileView,
-    ProjectViewSet, 
-    ProposalViewSet, 
-    ContractViewSet, 
+    ProjectViewSet,
+    ProposalViewSet,
+    ContractViewSet,
     MessageViewSet,
-    FreelancerListView
+    FreelancerListView,
+    NotificationViewSet,  # ✅ newly added
 )
 
 # ---------- Router Setup ----------
@@ -19,6 +20,7 @@ router.register(r'projects', ProjectViewSet, basename='projects')
 router.register(r'proposals', ProposalViewSet, basename='proposals')
 router.register(r'contracts', ContractViewSet, basename='contracts')
 router.register(r'messages', MessageViewSet, basename='messages')
+router.register(r'notifications', NotificationViewSet, basename='notifications')  # ✅ added
 
 # ---------- URL Patterns ----------
 urlpatterns = [
@@ -35,6 +37,6 @@ urlpatterns = [
     path('freelancer-profile/', FreelancerProfileView.as_view(), name='freelancer-profile'),
     path('profiles/', FreelancerListView.as_view(), name='freelancer-list'),
 
-    # Include ViewSets (Projects, Proposals, Contracts, Messages)
+    # Include all ViewSets (Projects, Proposals, Contracts, Messages, Notifications)
     path('', include(router.urls)),
 ]

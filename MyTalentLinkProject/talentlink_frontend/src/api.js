@@ -1,56 +1,102 @@
 import axios from "axios";
 
+// ------------------------------
+// ✅ BASE CONFIGURATION
+// ------------------------------
 const API = axios.create({
   baseURL: "http://127.0.0.1:8000/api/accounts/",
+  headers: { "Content-Type": "application/json" },
 });
 
-// Refresh function
+// ------------------------------
+// 🔁 REFRESH TOKEN FUNCTION
+// ------------------------------
 const refreshAccessToken = async () => {
   const refreshToken = localStorage.getItem("refresh_token");
-  if (!refreshToken) return false;
+  if (!refreshToken) return null;
 
   try {
-    const res = await axios.post(`${API.defaults.baseURL}token/refresh/`, {
-      refresh: refreshToken,
-    });
-    localStorage.setItem("access_token", res.data.access);
-    return res.data.access;
-  } catch (err) {
-    console.error("Failed to refresh token:", err);
+    const response = await axios.post(
+      `${API.defaults.baseURL}token/refresh/`,
+      { refresh: refreshToken }
+    );
+
+    const newAccessToken = response.data.access;
+    localStorage.setItem("access_token", newAccessToken);
+    return newAccessToken;
+  } catch (error) {
+    console.error("🔒 Token refresh failed:", error);
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     return null;
   }
 };
 
-// Add JWT token automatically if available
+// ------------------------------
+// 🪪 REQUEST INTERCEPTOR
+// ------------------------------
 API.interceptors.request.use(
-  (req) => {
+  (config) => {
     const token = localStorage.getItem("access_token");
-    if (token) req.headers.Authorization = `Bearer ${token}`;
-    return req;
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Handle expired token automatically
+// ------------------------------
+// ⚠️ RESPONSE INTERCEPTOR (HANDLE 401)
+// ------------------------------
 API.interceptors.response.use(
-  (res) => res,
-  async (err) => {
-    const originalRequest = err.config;
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
 
-    // Only handle 401 errors and prevent infinite loop
-    if (err.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       const newToken = await refreshAccessToken();
+
       if (newToken) {
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        return API(originalRequest); // retry original request
+        return API(originalRequest); // Retry with new token
       }
     }
 
-    return Promise.reject(err);
+    return Promise.reject(error);
   }
 );
 
+// ------------------------------
+// 📦 API ENDPOINT HELPERS
+// ------------------------------
+
+// ✅ Notifications
+export const fetchNotifications = () => API.get("notifications/");
+export const markNotificationAsRead = (id) =>
+  API.patch(`notifications/${id}/`, { is_read: true });
+
+// ✅ Projects
+export const fetchProjects = () => API.get("projects/");
+export const createProject = (data) => API.post("projects/", data);
+
+// ✅ Proposals
+export const fetchProposals = () => API.get("proposals/");
+export const sendProposal = (data) => API.post("proposals/", data);
+export const acceptProposal = (id) => API.post(`proposals/${id}/accept/`);
+
+// ✅ Contracts
+export const fetchContracts = () => API.get("contracts/");
+
+// ✅ Messages
+export const fetchMessages = (contractId) =>
+  API.get(`messages/?contract=${contractId}`);
+export const sendMessage = (data) => API.post("messages/", data);
+
+// ✅ Authentication
+export const registerUser = (data) => API.post("register/", data);
+export const loginUser = (data) => API.post("login/", data);
+
+// ------------------------------
+// 🧩 EXPORT DEFAULT
+// ------------------------------
 export default API;

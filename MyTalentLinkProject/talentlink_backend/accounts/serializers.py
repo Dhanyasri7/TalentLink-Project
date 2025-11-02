@@ -114,8 +114,18 @@ class MessageSerializer(serializers.ModelSerializer):
 # ---------- Notification Serializer ----------
 class NotificationSerializer(serializers.ModelSerializer):
     user = serializers.CharField(source='user.username', read_only=True)
-
+    notification_type = serializers.CharField(read_only=True)
+    
     class Meta:
         model = Notification
-        fields = ['id', 'user', 'message', 'link', 'is_read', 'created_at']
-        read_only_fields = ['id', 'user', 'created_at']
+        fields = [
+            'id',
+            'user',
+            'message',
+            'link',
+            'notification_type',
+            'is_read',
+            'created_at'
+        ]
+        read_only_fields = ['id', 'user', 'created_at', 'notification_type']
+

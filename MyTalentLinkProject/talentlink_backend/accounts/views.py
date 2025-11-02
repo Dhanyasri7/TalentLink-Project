@@ -2,6 +2,7 @@ from django.http import HttpResponse
 from rest_framework import generics, viewsets, permissions, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import (
@@ -20,21 +21,29 @@ from .serializers import (
     ProjectSerializer,
     ProposalSerializer,
     ContractSerializer,
-    MessageSerializer
+    MessageSerializer,
+    NotificationSerializer
 )
 
-# ---------- Test view ----------
+# ✅ Helper function to create notifications
+def create_notification(user, message, link=""):
+    """
+    Creates a notification entry for a specific user.
+    """
+    Notification.objects.create(user=user, message=message, link=link)
+
+# ---------- Test View ----------
 def test_view(request):
     return HttpResponse("Accounts app is working!")
 
 
-# ---------- Register ----------
+# ---------- Authentication ----------
 class RegisterView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = RegisterSerializer
 
 
-# ---------- Profile Views ----------
+# ---------- Client Profile ----------
 class ClientProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = ClientProfileSerializer
@@ -51,6 +60,7 @@ class ClientProfileView(generics.RetrieveUpdateAPIView):
         return profile
 
 
+# ---------- Freelancer Profile ----------
 class FreelancerProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = FreelancerProfileSerializer
@@ -68,7 +78,7 @@ class FreelancerProfileView(generics.RetrieveUpdateAPIView):
         return profile
 
 
-# ---------- Freelancer List View ----------
+# ---------- Freelancer List ----------
 class FreelancerListView(generics.ListAPIView):
     queryset = FreelancerProfile.objects.all()
     serializer_class = FreelancerProfileSerializer
@@ -96,7 +106,7 @@ class FreelancerListView(generics.ListAPIView):
 # ---------- Project ViewSet ----------
 class ProjectViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['category', 'budget', 'duration']
     search_fields = ['title', 'description']
@@ -110,7 +120,12 @@ class ProjectViewSet(viewsets.ModelViewSet):
         return Project.objects.none()
 
     def perform_create(self, serializer):
-        serializer.save(client=self.request.user)
+        project = serializer.save(client=self.request.user)
+        create_notification(
+            user=self.request.user,
+            message=f"Your project '{project.title}' has been successfully posted!",
+            link=f"/projects/{project.id}/"
+        )
 
 
 # ---------- Proposal ViewSet ----------
@@ -129,7 +144,13 @@ class ProposalViewSet(viewsets.ModelViewSet):
         return Proposal.objects.none()
 
     def perform_create(self, serializer):
-        serializer.save(freelancer=self.request.user)
+        proposal = serializer.save(freelancer=self.request.user)
+        # Notify client when a freelancer submits a proposal
+        create_notification(
+            user=proposal.project.client,
+            message=f"New proposal submitted for your project '{proposal.project.title}'.",
+            link=f"/projects/{proposal.project.id}/"
+        )
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def accept(self, request, pk=None):
@@ -138,9 +159,11 @@ class ProposalViewSet(viewsets.ModelViewSet):
             return Response({"error": "Not allowed"}, status=status.HTTP_403_FORBIDDEN)
         if proposal.status != "Pending":
             return Response({"error": "Proposal not pending"}, status=status.HTTP_400_BAD_REQUEST)
+
         proposal.status = "Accepted"
         proposal.save()
 
+        # Create or fetch a contract
         contract, _ = Contract.objects.get_or_create(
             proposal=proposal,
             defaults={
@@ -150,19 +173,64 @@ class ProposalViewSet(viewsets.ModelViewSet):
                 "status": "Active"
             }
         )
-        return Response({"message": "Proposal accepted", "contract_id": contract.id}, status=status.HTTP_200_OK)
+
+        # Notify freelancer about acceptance
+        create_notification(
+            user=proposal.freelancer,
+            message=f"Your proposal for project '{proposal.project.title}' has been accepted!",
+            link=f"/contracts/{contract.id}/"
+        )
+
+        return Response(
+            {"message": "Proposal accepted", "contract_id": contract.id},
+            status=status.HTTP_200_OK
+        )
 
 
 # ---------- Contract ViewSet ----------
 class ContractViewSet(viewsets.ModelViewSet):
+    """
+    Handles all CRUD operations for contracts
+    """
+    queryset = Contract.objects.all().order_by('-created_at')
     serializer_class = ContractSerializer
     permission_classes = [permissions.IsAuthenticated]
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['status', 'client', 'freelancer']
 
     def get_queryset(self):
+        """
+        Clients see their own contracts,
+        Freelancers see their own contracts.
+        """
         user = self.request.user
-        return Contract.objects.filter(client=user) | Contract.objects.filter(freelancer=user)
+        if user.is_client:
+            return Contract.objects.filter(client=user)
+        elif user.is_freelancer:
+            return Contract.objects.filter(freelancer=user)
+        return Contract.objects.none()
+
+    # ✅ Custom endpoint to mark contract as completed
+    @action(detail=True, methods=['put'], url_path='mark_completed')
+    def mark_completed(self, request, pk=None):
+        """
+        Mark a contract as completed and notify the freelancer.
+        """
+        contract = get_object_or_404(Contract, pk=pk)
+
+        if contract.status == 'Completed':
+            return Response({'detail': 'Contract already completed.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        contract.status = 'Completed'
+        contract.save()
+
+        # ✅ Create notification for freelancer
+        Notification.objects.create(
+            user=contract.freelancer,
+            message=f"🎉 Your contract for '{contract.proposal.project.title}' has been marked as completed!"
+        )
+
+        serializer = self.get_serializer(contract)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 
 # ---------- Message ViewSet ----------
@@ -175,36 +243,70 @@ class MessageViewSet(viewsets.ModelViewSet):
         return Message.objects.filter(contract__client=user) | Message.objects.filter(contract__freelancer=user)
 
     def perform_create(self, serializer):
-        serializer.save(sender=self.request.user)
+        message = serializer.save(sender=self.request.user)
+        # Notify the recipient
+        recipient = (
+            message.contract.freelancer
+            if message.sender == message.contract.client
+            else message.contract.client
+        )
+        create_notification(
+            user=recipient,
+            message=f"New message in your contract chat for '{message.contract.proposal.project.title}'.",
+            link=f"/contracts/{message.contract.id}/messages/"
+        )
 
 
 # ---------- Notification ViewSet ----------
 class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    Fetches notifications for the logged-in user.
+    ViewSet for handling notifications for both clients and freelancers.
+    Allows fetching unread/read notifications and marking them as read.
     """
+    serializer_class = NotificationSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def list(self, request):
-        notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
-        data = [
-            {
-                "id": n.id,
-                "message": n.message,
-                "link": n.link,
-                "is_read": n.is_read,
-                "created_at": n.created_at,
-            }
-            for n in notifications
-        ]
-        return Response(data)
+    def get_queryset(self):
+        """
+        Fetch notifications for the currently authenticated user only.
+        """
+        return Notification.objects.filter(user=self.request.user).order_by('-created_at')
+
+    @action(detail=False, methods=["get"])
+    def unread(self, request):
+        """
+        Get all unread notifications for the logged-in user.
+        """
+        unread_notifications = self.get_queryset().filter(is_read=False)
+        serializer = self.get_serializer(unread_notifications, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=["get"])
+    def read(self, request):
+        """
+        Get all read notifications for the logged-in user.
+        """
+        read_notifications = self.get_queryset().filter(is_read=True)
+        serializer = self.get_serializer(read_notifications, many=True)
+        return Response(serializer.data)
 
     @action(detail=True, methods=["post"])
     def mark_as_read(self, request, pk=None):
+        """
+        Mark a single notification as read.
+        """
         try:
-            notification = Notification.objects.get(pk=pk, user=request.user)
+            notification = self.get_queryset().get(pk=pk)
             notification.is_read = True
             notification.save()
-            return Response({"message": "Notification marked as read"})
+            return Response({"message": "Notification marked as read ✅"})
         except Notification.DoesNotExist:
             return Response({"error": "Notification not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=False, methods=["post"])
+    def mark_all_as_read(self, request):
+        """
+        Mark all notifications as read for the logged-in user.
+        """
+        updated_count = self.get_queryset().filter(is_read=False).update(is_read=True)
+        return Response({"message": f"{updated_count} notifications marked as read ✅"})

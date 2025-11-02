@@ -16,7 +16,7 @@
 }
 
 /* ==============================
-   Sidebar Navigation Bar
+   Sidebar Navigation
    ============================== */
 nav {
   width: 220px;
@@ -45,40 +45,8 @@ nav {
   }
 }
 
-nav h2 {
-  font-size: 1.4rem;
-  color: #fff;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 1rem;
-}
-
-.navLinks {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  width: 100%;
-  text-align: center;
-}
-
-.navLinks a {
-  color: #fff;
-  font-weight: 500;
-  text-decoration: none;
-  background: rgba(255, 255, 255, 0.15);
-  padding: 0.7rem 1rem;
-  border-radius: 10px;
-  transition: all 0.3s ease;
-}
-
-.navLinks a:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.05);
-}
-
 /* ==============================
-   Main Content Container
+   Main Content Area
    ============================== */
 .content {
   width: 100%;
@@ -106,48 +74,60 @@ nav h2 {
 }
 
 /* ==============================
-   Card Styles
+   Notifications List
+   ============================== */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+/* ==============================
+   Notification Card
    ============================== */
 .card {
   background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
   color: #222;
   border-radius: 15px;
-  padding: 2rem;
-  margin-top: 2rem;
+  padding: 1.5rem;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
   transition: all 0.4s ease;
+  position: relative;
 }
 
 .card:hover {
-  transform: translateY(-6px);
+  transform: translateY(-5px);
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
 }
 
+/* Unread notifications */
+.unread {
+  border-left: 6px solid #42e695;
+  background: linear-gradient(135deg, #b3ffab, #12fff7);
+}
+
+/* Read notifications */
+.read {
+  border-left: 6px solid #bdc3c7;
+  background: linear-gradient(135deg, #dfe9f3, #ffffff);
+  opacity: 0.85;
+}
+
 /* ==============================
-   Buttons
+   Notification Text
    ============================== */
-button {
-  margin-top: 1.5rem;
-  padding: 0.9rem 1.8rem;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  color: #fff;
+.message {
+  font-size: 1.05rem;
+  font-weight: 500;
+  margin-bottom: 0.8rem;
+  color: #1f2d3d;
 }
 
-button[type="submit"] {
-  background: linear-gradient(135deg, #42e695, #3bb2b8);
+.time {
+  font-size: 0.85rem;
+  color: #4e4e4e;
 }
-
-button[type="submit"]:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
-}
-
-
 
 /* ==============================
    Loading Text
@@ -188,50 +168,10 @@ button[type="submit"]:hover {
     margin-bottom: 1.5rem;
   }
 
-  .navLinks {
-    flex-direction: row;
-    gap: 1rem;
-  }
-
   .content {
     margin-left: 0;
     width: 95%;
     margin-top: 2rem;
     padding: 2rem;
   }
-}
-
-/* ==============================
-   Complete Button Styles
-   ============================== */
-.completeBtn {
-  background: linear-gradient(135deg, #2ecc71, #27ae60);
-  color: #fff;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 3px 6px rgba(46, 204, 113, 0.3);
-  margin-top: 10px;
-}
-
-.completeBtn:hover {
-  background: linear-gradient(135deg, #27ae60, #1e8449);
-  box-shadow: 0 4px 10px rgba(39, 174, 96, 0.5);
-  transform: translateY(-2px);
-}
-
-.completeBtn:active {
-  transform: scale(0.97);
-  box-shadow: 0 2px 5px rgba(39, 174, 96, 0.4);
-}
-
-.completeBtn:disabled {
-  background: #bdc3c7;
-  cursor: not-allowed;
-  box-shadow: none;
-  transform: none;
 }
