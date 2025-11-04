@@ -98,6 +98,9 @@ class Contract(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
+    rating = models.PositiveSmallIntegerField(null=True, blank=True)  
+    review = models.TextField(null=True, blank=True)
+
     def __str__(self):
         return f"Contract: {self.proposal.project.title} ({self.status})"
 

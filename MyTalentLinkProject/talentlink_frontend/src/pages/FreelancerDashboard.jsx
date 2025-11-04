@@ -49,7 +49,7 @@ function FreelancerDashboard() {
     });
   };
 
-  // ✅ Fixed: Submit proposal
+  // Submit proposal
   const submitProposal = async (projectId) => {
     const form = proposalForms[projectId] || {};
     if (!form.proposal_text || !form.bid_amount) {
@@ -58,7 +58,6 @@ function FreelancerDashboard() {
     }
 
     try {
-      // ✅ Correct endpoint — removed duplicate "api/"
       await API.post("proposals/", {
         project: projectId,
         proposal_text: form.proposal_text,
@@ -104,9 +103,41 @@ function FreelancerDashboard() {
                 <div key={project.id} className={styles.projectCard}>
                   <strong>{project.title}</strong> - {project.description}
                   <p>
-                    Category: {project.category} | Budget: ${project.budget} | Duration:{" "}
-                    {project.duration} days
+                    Category: {project.category} | Budget: ${project.budget} |
+                    Duration: {project.duration} days
                   </p>
+
+                  {/* ✅ Show project status */}
+                  {project.status && (
+                    <p>
+                      <strong>Status:</strong>{" "}
+                      <span
+                        className={
+                          project.status === "Completed"
+                            ? styles.completed
+                            : project.status === "Accepted"
+                            ? styles.accepted
+                            : styles.pending
+                        }
+                      >
+                        {project.status}
+                      </span>
+                    </p>
+                  )}
+
+                  {/* ✅ Show Review if available */}
+                  {project.status === "Completed" && project.review && (
+                    <div className={styles.reviewSection}>
+                      <h4>Client Review</h4>
+                      <p>
+                        <strong>Rating:</strong>{" "}
+                        {"⭐".repeat(project.review.rating)}
+                      </p>
+                      <p>
+                        <strong>Feedback:</strong> {project.review.feedback}
+                      </p>
+                    </div>
+                  )}
 
                   {/* Proposal Form */}
                   <div className={styles.card}>

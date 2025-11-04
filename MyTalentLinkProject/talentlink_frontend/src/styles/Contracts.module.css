@@ -235,3 +235,97 @@ button[type="submit"]:hover {
   box-shadow: none;
   transform: none;
 }
+
+/* ==============================
+   Review & Rating Section
+   ============================== */
+.reviewSection {
+  margin-top: 1.8rem;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 15px;
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+  color: #222;
+  text-align: left;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.reviewSection:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+}
+
+.reviewSection h4 {
+  color: #fff;
+  font-size: 1.2rem;
+  margin-bottom: 0.8rem;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+}
+
+.ratingInput {
+  width: 100%;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  border: none;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.9);
+  margin-bottom: 0.8rem;
+  transition: all 0.3s ease;
+}
+
+.ratingInput:focus {
+  outline: none;
+  box-shadow: 0 0 10px rgba(46, 204, 113, 0.6);
+}
+
+.reviewInput {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  border: none;
+  font-size: 0.95rem;
+  background: rgba(255, 255, 255, 0.9);
+  resize: none;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.reviewInput:focus {
+  outline: none;
+  box-shadow: 0 0 10px rgba(63, 94, 251, 0.6);
+}
+
+.submitBtn {
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.8rem 1.5rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 10px rgba(0, 242, 254, 0.4);
+}
+
+.submitBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 242, 254, 0.6);
+}
+
+.submitBtn:active {
+  transform: scale(0.98);
+  box-shadow: 0 3px 8px rgba(0, 242, 254, 0.4);
+}
+
+.existingReview {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  padding: 1rem;
+  color: #222;
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}

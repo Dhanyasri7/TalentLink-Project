@@ -188,6 +188,14 @@ class ProposalViewSet(viewsets.ModelViewSet):
 
 
 # ---------- Contract ViewSet ----------
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
+from .models import Contract, Notification
+from .serializers import ContractSerializer
+
+
 class ContractViewSet(viewsets.ModelViewSet):
     """
     Handles all CRUD operations for contracts
@@ -202,13 +210,13 @@ class ContractViewSet(viewsets.ModelViewSet):
         Freelancers see their own contracts.
         """
         user = self.request.user
-        if user.is_client:
+        if getattr(user, "is_client", False):
             return Contract.objects.filter(client=user)
-        elif user.is_freelancer:
+        elif getattr(user, "is_freelancer", False):
             return Contract.objects.filter(freelancer=user)
         return Contract.objects.none()
 
-    # ✅ Custom endpoint to mark contract as completed
+    # ✅ Mark a contract as completed
     @action(detail=True, methods=['put'], url_path='mark_completed')
     def mark_completed(self, request, pk=None):
         """
@@ -231,7 +239,48 @@ class ContractViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(contract)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    # ✅ New endpoint: Submit review & rating by client
+    @action(detail=True, methods=['post'], url_path='submit_review')
+    def submit_review(self, request, pk=None):
+        """
+        Allow client to submit a review and rating once contract is completed.
+        """
+        contract = get_object_or_404(Contract, pk=pk)
 
+        # Only client can review
+        if request.user != contract.client:
+            return Response({"error": "Only the client can submit a review."},
+                            status=status.HTTP_403_FORBIDDEN)
+
+        # Contract must be completed
+        if contract.status != "Completed":
+            return Response({"error": "You can only review a completed contract."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        rating = request.data.get("rating")
+        review = request.data.get("review")
+
+        # Validate rating
+        try:
+            rating = int(rating)
+            if rating < 1 or rating > 5:
+                raise ValueError
+        except (TypeError, ValueError):
+            return Response({"error": "Rating must be an integer between 1 and 5."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Save review
+        contract.rating = rating
+        contract.review = review
+        contract.save()
+
+        # ✅ Notify freelancer
+        Notification.objects.create(
+            user=contract.freelancer,
+            message=f"⭐ You received a {rating}-star review from {contract.client.username}!"
+        )
+
+        return Response({"message": "Review submitted successfully ✅"})
 
 # ---------- Message ViewSet ----------
 class MessageViewSet(viewsets.ModelViewSet):

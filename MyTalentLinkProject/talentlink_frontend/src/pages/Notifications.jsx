@@ -6,17 +6,35 @@ import styles from "../styles/Notifications.module.css";
 function Notifications() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState(null); // 👈 for client/freelancer
+  const [userRole, setUserRole] = useState(null); // 👈 client/freelancer
   const [marking, setMarking] = useState(null);
 
-  // ✅ Fetch current user (to check role)
+  // ✅ Fetch current user (detects if client or freelancer)
   const fetchUser = async () => {
     try {
-      const res = await API.get("users/me/");
-      setUserRole(res.data.role); // assuming your User model has 'role' field
-    } catch (err) {
-      console.error("❌ Failed to fetch user:", err);
+      // Try fetching client profile first
+      const clientRes = await API.get("client-profile/");
+      if (clientRes.status === 200 && clientRes.data) {
+        setUserRole("client");
+        console.log("✅ Logged in as Client:", clientRes.data);
+        return;
+      }
+    } catch (clientErr) {
+      // If client API fails, try freelancer
+      try {
+        const freelancerRes = await API.get("freelancer-profile/");
+        if (freelancerRes.status === 200 && freelancerRes.data) {
+          setUserRole("freelancer");
+          console.log("✅ Logged in as Freelancer:", freelancerRes.data);
+          return;
+        }
+      } catch (freelancerErr) {
+        console.error("❌ Failed to fetch user role:", freelancerErr);
+      }
     }
+
+    // If both fail, fallback
+    setUserRole(null);
   };
 
   // ✅ Fetch notifications
@@ -38,9 +56,7 @@ function Notifications() {
       setMarking(id);
       await API.post(`notifications/${id}/mark_as_read/`);
       setNotifications((prev) =>
-        prev.map((n) =>
-          n.id === id ? { ...n, is_read: true } : n
-        )
+        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
       );
     } catch (err) {
       console.error("❌ Failed to mark as read:", err);
@@ -49,19 +65,27 @@ function Notifications() {
     }
   };
 
+  // ✅ On mount: fetch user role + notifications
   useEffect(() => {
     fetchUser();
     fetchNotifications();
   }, []);
 
-  if (loading) return <p className={styles.loading}>Loading notifications...</p>;
+  if (loading)
+    return <p className={styles.loading}>Loading notifications...</p>;
 
   // ✅ Filter notifications based on login type
   const filteredNotifications =
     userRole === "client"
-      ? notifications.filter((n) => n.message.includes("contract") || n.message.includes("freelancer"))
+      ? notifications.filter(
+          (n) =>
+            n.message.toLowerCase().includes("contract") ||
+            n.message.toLowerCase().includes("freelancer")
+        )
       : userRole === "freelancer"
-      ? notifications.filter((n) => n.message.includes("client"))
+      ? notifications.filter((n) =>
+          n.message.toLowerCase().includes("client")
+        )
       : notifications;
 
   return (
@@ -85,9 +109,7 @@ function Notifications() {
                 }`}
                 onClick={() => !notif.is_read && markAsRead(notif.id)}
               >
-                <p className={styles.message}>
-                  {notif.message}
-                </p>
+                <p className={styles.message}>{notif.message}</p>
                 <p className={styles.time}>
                   {new Date(notif.created_at).toLocaleString()}
                 </p>

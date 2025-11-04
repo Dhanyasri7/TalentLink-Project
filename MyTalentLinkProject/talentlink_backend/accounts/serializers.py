@@ -89,10 +89,21 @@ class ContractSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contract
         fields = [
-            'id', 'proposal', 'project_title', 
-            'freelancer', 'client', 'freelancer_id', 'client_id',
-            'payment_amount', 'status', 'created_at'
+            'id',
+            'proposal',
+            'project_title',
+            'freelancer',
+            'client',
+            'freelancer_id',
+            'client_id',
+            'payment_amount',
+            'status',
+            'rating',
+            'review',
+            'created_at',
         ]
+        read_only_fields = ['created_at']
+
 
 
 # ---------- Message Serializer ----------
